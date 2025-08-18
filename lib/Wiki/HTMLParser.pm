@@ -276,7 +276,7 @@ sub end_verbatim {
 	my $self  = shift;
 	if($self->{pre} ne ""){
         #コピーボタンを追加
-        $self->{html} .= "<span class=\"pre-wrapper\"><pre>".$self->{pre}."</pre><button type=\"button\" class=\"copy-btn\">copy</button></span>\n";
+        $self->{html} .= "<div class=\"pre-wrapper\"><pre>".$self->{pre}."</pre><button type=\"button\" class=\"copy-btn\">copy</button></div>\n";
 		$self->{pre} = "";
 	}
 }
