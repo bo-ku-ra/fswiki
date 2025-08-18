@@ -1,14 +1,14 @@
 ############################################################
 #
-# ¸¡º÷¤ò¼Â¹Ô¤·¤Æ·ë²Ì¤òÉ½¼¨¤¹¤ë¥¢¥¯¥·¥ç¥ó¥×¥é¥°¥¤¥ó
+# æ¤œç´¢ã‚’å®Ÿè¡Œã—ã¦çµæœã‚’è¡¨ç¤ºã™ã‚‹ã‚¢ã‚¯ã‚·ãƒ§ãƒ³ãƒ—ãƒ©ã‚°ã‚¤ãƒ³
 # BugTrack-plugin/396
-# 2009-01-09 ÈÇ
+# 2009-01-09 ç‰ˆ
 #
 ############################################################
 package plugin::search::SearchHandler;
 use strict;
 #===========================================================
-# ¥³¥ó¥¹¥È¥é¥¯¥¿
+# ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 #===========================================================
 sub new {
 	my $class = shift;
@@ -17,7 +17,7 @@ sub new {
 }
 
 #===========================================================
-# ¥¢¥¯¥·¥ç¥ó¤Î¼Â¹Ô
+# ã‚¢ã‚¯ã‚·ãƒ§ãƒ³ã®å®Ÿè¡Œ
 #===========================================================
 sub do_action {
 	my $self = shift;
@@ -29,9 +29,9 @@ sub do_action {
 	my $or_search    = $cgi->param('t') eq 'or';
 	my $with_content = $cgi->param('c') eq 'true';
 
-	$wiki->set_title("¸¡º÷");
+	$wiki->set_title("æ¤œç´¢");
 	$buf .= "<form method=\"GET\" action=\"".$wiki->create_url()."\">\n".
-	        "¥­¡¼¥ï¡¼¥É <input type=\"text\" name=\"word\" size=\"20\" value=\"".&Util::escapeHTML($word)."\"> ";
+	        "ã‚­ãƒ¼ãƒ¯ãƒ¼ãƒ‰ <input type=\"text\" name=\"word\" size=\"20\" value=\"".&Util::escapeHTML($word)."\"> ";
 
 	$buf .= "<input type=\"radio\" name=\"t\" id=\"and\" value=\"and\"";
 	$buf .= " checked" if (not $or_search);
@@ -41,49 +41,81 @@ sub do_action {
 	$buf .= "><label for=\"or\">OR</label>\n";
 	$buf .= "<input type=\"checkbox\" id=\"contents\" name=\"c\" value=\"true\"";
 	$buf .= " checked" if ($with_content);
-	$buf .= "><label for=\"contents\">¥Ú¡¼¥¸ÆâÍÆ¤â´Ş¤á¤ë</label>\n";
+	$buf .= "><label for=\"contents\">ãƒšãƒ¼ã‚¸å†…å®¹ã‚‚å«ã‚ã‚‹</label>\n";
 
-	$buf .=  "<input type=\"submit\" value=\" ¸¡ º÷ \">".
+	$buf .=  "<input type=\"submit\" value=\" æ¤œ ç´¢ \">".
 	         "<input type=\"hidden\" name=\"action\" value=\"SEARCH\">".
 	         "</form>\n";
 
 	my $ignore_case = 1;
 	my $conv_upper_case = ($ignore_case and $word =~ /[A-Za-z]/);
 	$word = uc $word if ($conv_upper_case);
-	my @words = grep { $_ ne '' } split(/ +|¡¡+/, $word);
+	my @words = grep { $_ ne '' } split(/ +|ã€€+/, $word);
 	return $buf unless (@words);
 	#---------------------------------------------------------------------------
-	# ¸¡º÷¼Â¹Ô
+	# æ¤œç´¢å®Ÿè¡Œ
 	my @list = $wiki->get_page_list({-permit=>'show'});
 	my $res = '';
 	PAGE:
 	foreach my $name (@list){
-		# ¥Ú¡¼¥¸Ì¾¤â¸¡º÷ÂĞ¾İ¤Ë¤¹¤ë
+		# ãƒšãƒ¼ã‚¸åã‚‚æ¤œç´¢å¯¾è±¡ã«ã™ã‚‹
 		my $page = $name;
 		$page .= "\n".$wiki->get_page($name) if ($with_content);
 		my $pageref = ($conv_upper_case) ? \(my $page2 = uc $page) : \$page;
 		my $index;
 
 		if ($or_search) {
-			# OR¸¡º÷ -------------------------------------------------------
+			# ORæ¤œç´¢ -------------------------------------------------------
 			WORD:
 			foreach(@words){
 				next WORD if (($index = index $$pageref, $_) == -1);
 				$res .= "<li>".
-					    "<a href=\"".$wiki->create_page_url($name)."\">".Util::escapeHTML($name)."</a>".
+					    "<a href=\"".$wiki->create_page_url($name)."\">";
+	#--------------------------------------------------------------------------------------------------------------------
+	# bokuraæ”¹
+	#--------------------------------------------------------------------------------------------------------------------
+				if($wiki->get_page_level($name) == 2){
+					$res .="<span  class=\"adminpage\">";
+				}
+				if($wiki->get_page_level($name) == 1){
+					$res .="<span  class=\"userpage\">";
+				}
+
+				$res .= Util::escapeHTML($name);
+				if($wiki->get_page_level($name) == 2 || $wiki->get_page_level($name) == 1){
+					$res .="</span>";
+				}
+	#--------------------------------------------------------------------------------------------------------------------
+				$res .= "</a>".
 						" - ".
 						Util::escapeHTML(&get_match_content($wiki, $page, $index)).
 						"</li>\n";
 				next PAGE;
 			}
 		} else {
-			# AND¸¡º÷ ------------------------------------------------------
+			# ANDæ¤œç´¢ ------------------------------------------------------
 			WORD:
 			foreach(@words){
 				next PAGE if (($index = index $$pageref, $_) == -1);
 			}
 			$res .= "<li>".
-					"<a href=\"".$wiki->create_page_url($name)."\">".Util::escapeHTML($name)."</a>".
+					"<a href=\"".$wiki->create_page_url($name)."\">";
+	#--------------------------------------------------------------------------------------------------------------------
+	# bokuraæ”¹
+	#--------------------------------------------------------------------------------------------------------------------
+				if($wiki->get_page_level($name) == 2){
+					$res .="<span  class=\"adminpage\">";
+				}
+				if($wiki->get_page_level($name) == 1){
+					$res .="<span  class=\"userpage\">";
+				}
+
+				$res .= Util::escapeHTML($name);
+				if($wiki->get_page_level($name) == 2 || $wiki->get_page_level($name) == 1){
+					$res .="</span>";
+				}
+	#--------------------------------------------------------------------------------------------------------------------
+				$res .= "</a>".
 					" - ".
 					Util::escapeHTML(&get_match_content($wiki, $page, $index)).
 					"</li>\n";
@@ -94,28 +126,28 @@ sub do_action {
 }
 
 #===========================================================
-# ¸¡º÷¤Ë¥Ş¥Ã¥Á¤·¤¿¹Ô¤ò¼è¤ê½Ğ¤¹´Ø¿ô
+# æ¤œç´¢ã«ãƒãƒƒãƒã—ãŸè¡Œã‚’å–ã‚Šå‡ºã™é–¢æ•°
 #===========================================================
 sub get_match_content {
 	my $wiki    = shift;
 	my $content = shift;
 	my $index   = shift;
 
-	# ¸¡º÷¤Ë¥Ş¥Ã¥Á¤·¤¿¹Ô¤ÎÀèÆ¬Ê¸»ú¤Î°ÌÃÖ¤òµá¤á¤ë¡£
-	# ¡¦$content ¤Î $index ÈÖÌÜ¤ÎÊ¸»ú¤«¤éÀèÆ¬Êı¸ş¤Ë²ş¹ÔÊ¸»ú¤òÃµ¤¹¡£
-	# ¡¦$index ¤Î°ÌÃÖ¤ò´Ş¤à¹Ô¤ÎÀèÆ¬Ê¸»ú¤Î°ÌÃÖ¤Ï²ş¹ÔÊ¸»ú¤Î¼¡¤Ê¤Î¤Ç +1 ¤¹¤ë¡£
-	# ¡¦ÀèÆ¬Êı¸ş¤Ë²ş¹ÔÊ¸»ú¤¬Ìµ¤«¤Ã¤¿¤éºÇ½é¤Î¹Ô¤Ê¤Î¤Ç¡¢·ë²Ì¤Ï 0(ÀèÆ¬)¡£
-	#   (¸«¤Ä¤«¤é¤Ê¤¤¤È rindex() = -1 ¤Ë¤Ê¤ë¤Î¤Ç¡¢+1 ¤·¤Æ¤Á¤ç¤¦¤É 0)
+	# æ¤œç´¢ã«ãƒãƒƒãƒã—ãŸè¡Œã®å…ˆé ­æ–‡å­—ã®ä½ç½®ã‚’æ±‚ã‚ã‚‹ã€‚
+	# ãƒ»$content ã® $index ç•ªç›®ã®æ–‡å­—ã‹ã‚‰å…ˆé ­æ–¹å‘ã«æ”¹è¡Œæ–‡å­—ã‚’æ¢ã™ã€‚
+	# ãƒ»$index ã®ä½ç½®ã‚’å«ã‚€è¡Œã®å…ˆé ­æ–‡å­—ã®ä½ç½®ã¯æ”¹è¡Œæ–‡å­—ã®æ¬¡ãªã®ã§ +1 ã™ã‚‹ã€‚
+	# ãƒ»å…ˆé ­æ–¹å‘ã«æ”¹è¡Œæ–‡å­—ãŒç„¡ã‹ã£ãŸã‚‰æœ€åˆã®è¡Œãªã®ã§ã€çµæœã¯ 0(å…ˆé ­)ã€‚
+	#   (è¦‹ã¤ã‹ã‚‰ãªã„ã¨ rindex() = -1 ã«ãªã‚‹ã®ã§ã€+1 ã—ã¦ã¡ã‚‡ã†ã© 0)
 	my $pre_index = rindex($content, "\n", $index) + 1;
 
-	# ¸¡º÷¤Ë¥Ş¥Ã¥Á¤·¤¿¹Ô¤ÎËöÈøÊ¸»ú¤Î°ÌÃÖ¤òµá¤á¤ë¡£
-	# ¡¦$content ¤Î $index ÈÖÌÜ¤ÎÊ¸»ú¤«¤éËöÈøÊı¸ş¤Ë²ş¹ÔÊ¸»ú¤òÃµ¤¹¡£
+	# æ¤œç´¢ã«ãƒãƒƒãƒã—ãŸè¡Œã®æœ«å°¾æ–‡å­—ã®ä½ç½®ã‚’æ±‚ã‚ã‚‹ã€‚
+	# ãƒ»$content ã® $index ç•ªç›®ã®æ–‡å­—ã‹ã‚‰æœ«å°¾æ–¹å‘ã«æ”¹è¡Œæ–‡å­—ã‚’æ¢ã™ã€‚
 	my $post_index = index($content, "\n", $index);
 
-	# ËöÈøÊı¸ş¤Ë²ş¹ÔÊ¸»ú¤¬¤Ê¤«¤Ã¤¿¤éºÇ½ª¹Ô¤Ê¤Î¤Ç $pre_index °Ê¹ßÁ´¤Æ¤òÊÖµÑ¡£
+	# æœ«å°¾æ–¹å‘ã«æ”¹è¡Œæ–‡å­—ãŒãªã‹ã£ãŸã‚‰æœ€çµ‚è¡Œãªã®ã§ $pre_index ä»¥é™å…¨ã¦ã‚’è¿”å´ã€‚
 	return substr($content, $pre_index) if ($post_index == -1);
 
-	# ¸«¤Ä¤«¤Ã¤¿²ş¹ÔÊ¸»ú¤Ë¶´¤Ş¤ì¤¿Ê¸»úÎó¤òÊÖµÑ¡£
+	# è¦‹ã¤ã‹ã£ãŸæ”¹è¡Œæ–‡å­—ã«æŒŸã¾ã‚ŒãŸæ–‡å­—åˆ—ã‚’è¿”å´ã€‚
 	return substr($content, $pre_index, $post_index - $pre_index);
 }
 
