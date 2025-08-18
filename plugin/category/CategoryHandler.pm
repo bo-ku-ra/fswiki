@@ -1,13 +1,13 @@
 ###############################################################################
 #
-# Category•◊•È•∞•§•Û§Œ•¢•Ø•∑•Á•Û•œ•Û•…•È
+# Category„Éó„É©„Ç∞„Ç§„É≥„ÅÆ„Ç¢„ÇØ„Ç∑„Éß„É≥„Éè„É≥„Éâ„É©
 #
 ###############################################################################
 package plugin::category::CategoryHandler;
 use strict;
 use plugin::category::CategoryCache;
 #==============================================================================
-# •≥•Û•π•»•È•Ø•ø
+# „Ç≥„É≥„Çπ„Éà„É©„ÇØ„Çø
 #==============================================================================
 sub new {
 	my $class = shift;
@@ -16,7 +16,7 @@ sub new {
 }
 
 #==============================================================================
-# •¢•Ø•∑•Á•Û•œ•Û•…•È•·•Ω•√•…
+# „Ç¢„ÇØ„Ç∑„Éß„É≥„Éè„É≥„Éâ„É©„É°„ÇΩ„ÉÉ„Éâ
 #==============================================================================
 sub do_action {
 	my $self = shift;
@@ -31,15 +31,30 @@ sub do_action {
 	my $result = &Util::load_config_hash(undef,$cachefile);
 	
 	if($category eq ""){
-		$wiki->set_title("•´•∆•¥•Í§Œ∞ÏÕ˜");
+		$wiki->set_title("„Ç´„ÉÜ„Ç¥„É™„ÅÆ‰∏ÄË¶ß");
 		my $buf = "";
 		foreach my $key (sort(keys(%$result))){
 			$buf .= "<h2>".&Util::escapeHTML($key)."</h2>\n<ul>\n";
 			my @pages = sort(split(/\t/,$result->{$key}));
 			foreach my $pagename (@pages){
 				if($wiki->can_show($pagename)){
+	#--------------------------------------------------------------------------------------------------------------------
+	# bokuraÊîπ
+	#--------------------------------------------------------------------------------------------------------------------
+	if($wiki->get_page_level($pagename) == 2){
+					$buf .= "<li><a href=\"".$wiki->create_page_url($pagename)."\" class=\"adminpage\">".
+					        &Util::escapeHTML($pagename)."</a></li>\n";
+	} else {
+		if($wiki->get_page_level($pagename) == 1){
+					$buf .= "<li><a href=\"".$wiki->create_page_url($pagename)."\" class=\"userpage\">".
+					        &Util::escapeHTML($pagename)."</a></li>\n";
+		} else {
 					$buf .= "<li><a href=\"".$wiki->create_page_url($pagename)."\">".
 					        &Util::escapeHTML($pagename)."</a></li>\n";
+		}
+        }
+	#--------------------------------------------------------------------------------------------------------------------
+
 				}
 			}
 			$buf .= "</ul>\n";
@@ -47,12 +62,26 @@ sub do_action {
 		return $buf;
 		
 	} else {
-		$wiki->set_title("•´•∆•¥•Í:".$category);
+		$wiki->set_title("„Ç´„ÉÜ„Ç¥„É™:".$category);
 		my $buf = "<h2>".&Util::escapeHTML($category)."</h2>\n<ul>\n";
 		foreach my $pagename (sort(split(/\t/,$result->{$category}))){
 			if($wiki->can_show($pagename)){
-				$buf .= "<li><a href=\"".$wiki->create_page_url($pagename)."\">".
-			            &Util::escapeHTML($pagename)."</a></li>\n";
+	#--------------------------------------------------------------------------------------------------------------------
+	# bokuraÊîπ
+	#--------------------------------------------------------------------------------------------------------------------
+	if($wiki->get_page_level($pagename) == 2){
+					$buf .= "<li><a href=\"".$wiki->create_page_url($pagename)."\" class=\"adminpage\">".
+					        &Util::escapeHTML($pagename)."</a></li>\n";
+	} else {
+		if($wiki->get_page_level($pagename) == 1){
+					$buf .= "<li><a href=\"".$wiki->create_page_url($pagename)."\" class=\"userpage\">".
+					        &Util::escapeHTML($pagename)."</a></li>\n";
+		} else {
+					$buf .= "<li><a href=\"".$wiki->create_page_url($pagename)."\">".
+					        &Util::escapeHTML($pagename)."</a></li>\n";
+		}
+        }
+	#--------------------------------------------------------------------------------------------------------------------
 			}
 		}
 		return $buf."</ul>\n";
