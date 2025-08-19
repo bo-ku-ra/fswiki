@@ -1,54 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
   <head>
-
-<!-- for D2 -->
-<script type="module">
-import { D2 } from 'https://esm.sh/@terrastruct/d2@nightly/es2022/d2.mjs';
-
-document.addEventListener('DOMContentLoaded', async () => {
-    const sourceElements = document.querySelectorAll('[id^="d2source_"]');
-
-    for (const el of sourceElements) {
-        const source = el.textContent.trim();
-        try {
-            const d2 = new D2();
-            const result = await d2.compile(source);
-
-            // HTMLが完全に描画された後にレンダリングを開始
-            requestAnimationFrame(async () => {
-                const svg = await d2.render(result.diagram, {
-                    pad: 5,
-                    scale: 1,
-                });
-
-                el.innerHTML = svg;
-                el.style.display = 'flex';
-            });
-        } catch (err) {
-            console.error(`Error rendering D2 for element #${el.id}:`, err);
-        }
-    }
-});
-</script>
-<!-- for D2(終) -->
-<!-- for mermaid -->
-<script type="module">
-    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
-    mermaid.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose'});
-   //Themes [default, neutral, dark, forest, base]
-</script>
-<script>
-// ページが完全に読み込まれた後に実行される関数
-window.onload = function() {
- window.addEventListener('resize', function() {  // リサイズイベントをリスニング
- window.location.reload();                       // ページをリロード
- });
-};
-</script>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
-<!-- for mermaid(終) -->
-    
     <!--TMPL_IF NAME="EDIT_MODE"-->
       <meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
     <!--/TMPL_IF-->
@@ -144,5 +96,71 @@ document.querySelectorAll('.pre-wrapper').forEach(wrapper => {
   });
 });
 </script>
+<!-- for mermaid -->
+<script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose'});
+   //Themes [default, neutral, dark, forest, base]
+</script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+<!-- for mermaid(終) -->
+<!-- for D2 -->
+<script type="module">
+// D2ライブラリをインポート
+import { D2 } from 'https://esm.sh/@terrastruct/d2@nightly/es2022/d2.mjs';
 
+/**
+ * 指定された単一の要素にD2図をレンダリングします。
+ * @param {Element} el - レンダリング対象のDOM要素
+ */
+async function renderD2Element(el) {
+  const src = (el.textContent || '').trim();
+  if (!src || el.dataset.d2Rendered) {
+    return;
+  }
+
+  try {
+    // レンダリング前にコンテナを準備
+    el.innerHTML = 'D2 Rendering...';
+    el.style.display = 'flex'; // 先に表示スタイルを適用
+
+    // ブラウザがDOMの表示変更を反映するのを待つ
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    // D2インスタンスを都度生成
+    const d2 = new D2();
+    const diagram = await d2.compile(src);
+    
+    // innerHTML を使ってSVG文字列を書き込む
+    el.innerHTML = await d2.render(diagram.diagram, { pad: 5, scale: 1 });
+    
+    // レンダリング成功のマークを付ける
+    el.dataset.d2Rendered = '1';
+
+  } catch (error) {
+    console.error(`D2 Rendering Error in #${el.id}:`, error);
+    el.innerText = `Failed to render D2 diagram.\n\nError: ${error.message}`;
+    el.style.color = 'red';
+    el.style.whiteSpace = 'pre-wrap';
+  }
+}
+
+/**
+ * ページ内のすべてのD2図を順番にレンダリングします。
+ */
+async function renderAllSequentially() {
+  const elements = document.querySelectorAll('[id^="d2source_"]');
+  for (const el of elements) {
+    await renderD2Element(el);
+  }
+}
+
+// DOMの読み込み状態に応じて、レンダリング処理を実行
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', renderAllSequentially);
+} else {
+  renderAllSequentially();
+}
+</script>
+<!-- for D2(終) -->
 </body></html>
