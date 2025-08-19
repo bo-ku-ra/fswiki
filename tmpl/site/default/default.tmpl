@@ -1,7 +1,8 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
   <head>
-<!-- D2レンダリング -->
+
+<!-- for D2 -->
 <script type="module">
 import { D2 } from 'https://esm.sh/@terrastruct/d2@nightly/es2022/d2.mjs';
 
@@ -30,8 +31,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 </script>
-<!-- D2レンダリング(終) -->
-
+<!-- for D2(終) -->
+<!-- for mermaid -->
+<script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose'});
+   //Themes [default, neutral, dark, forest, base]
+</script>
+<script>
+// ページが完全に読み込まれた後に実行される関数
+window.onload = function() {
+ window.addEventListener('resize', function() {  // リサイズイベントをリスニング
+ window.location.reload();                       // ページをリロード
+ });
+};
+</script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+<!-- for mermaid(終) -->
+    
     <!--TMPL_IF NAME="EDIT_MODE"-->
       <meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
     <!--/TMPL_IF-->
@@ -99,7 +116,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   <!--TMPL_VAR NAME="FOOTER"-->
 
-<!-- preにコピーボタン -->
 <script>
 document.querySelectorAll('.pre-wrapper').forEach(wrapper => {
   const pre = wrapper.querySelector('pre');
@@ -128,6 +144,5 @@ document.querySelectorAll('.pre-wrapper').forEach(wrapper => {
   });
 });
 </script>
-<!-- preにコピーボタン(終) -->
 
 </body></html>
