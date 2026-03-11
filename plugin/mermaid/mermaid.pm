@@ -29,6 +29,7 @@ sub block {
 
 	my $buf  = '<div class="mermaid">';
 	foreach my $line (split(/(\r\n)|\n|\r/, $text)){
+		if ($line eq ''){ next; }
 		$buf .= "$line\n";
 	}
 	$buf .= '</div>';
